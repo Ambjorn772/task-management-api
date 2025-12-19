@@ -30,13 +30,18 @@ jobs:
         run: npm install
         continue-on-error: false
 
-      - name: Check code formatting with Prettier
-        run: npm run format:check
-        continue-on-error: true
-      
-      - name: Auto-fix formatting issues
-        if: failure()
+      - name: Auto-fix code formatting with Prettier
         run: npm run format
+      
+      - name: Check for formatting changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Code formatting issues found. Please run 'npm run format' locally and commit the changes."
+            git diff
+            exit 1
+          else
+            echo "✅ Code is properly formatted"
+          fi
 
       - name: Run ESLint
         run: npm run lint
