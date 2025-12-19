@@ -1,4 +1,4 @@
-const fastify = require('fastify')();
+const fastify = require('fastify');
 const tasksRoutes = require('../../src/routes/tasksRoutes');
 
 // Мокируємо БД для інтеграційних тестів
@@ -32,7 +32,7 @@ describe('Tasks API E2E Tests (via HTTP)', () => {
   const db = require('../../src/database/dbConfig');
 
   beforeAll(async () => {
-    app = fastify();
+    app = fastify({ logger: false });
     await app.register(tasksRoutes, { prefix: '/tasks' });
     await app.ready();
   });
