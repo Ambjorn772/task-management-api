@@ -42,13 +42,29 @@ describe('Tasks Service E2E Tests', () => {
   });
 
   afterAll(async () => {
-    await app.close();
-    db.close();
+    try {
+      if (app) {
+        await app.close();
+      }
+    } catch (error) {
+      // Ignore close errors
+    }
+    try {
+      if (db) {
+        db.close();
+      }
+    } catch (error) {
+      // Ignore close errors
+    }
     const path = require('path');
     const fs = require('fs');
     const dbPath = path.join(__dirname, '../../test-e2e-tasks.db');
     if (fs.existsSync(dbPath)) {
-      fs.unlinkSync(dbPath);
+      try {
+        fs.unlinkSync(dbPath);
+      } catch (error) {
+        // Ignore delete errors
+      }
     }
   });
 
