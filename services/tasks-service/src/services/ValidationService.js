@@ -2,11 +2,7 @@ class ValidationService {
   static validateTaskData(data) {
     const errors = [];
 
-    if (
-      !data.title ||
-      typeof data.title !== 'string' ||
-      data.title.trim().length === 0
-    ) {
+    if (!data.title || typeof data.title !== 'string' || data.title.trim().length === 0) {
       errors.push('Title is required and must be a non-empty string');
     }
 
@@ -18,22 +14,12 @@ class ValidationService {
       errors.push('UserId is required');
     }
 
-    if (
-      data.userId &&
-      (!Number.isInteger(Number(data.userId)) || Number(data.userId) <= 0)
-    ) {
+    if (data.userId && (!Number.isInteger(Number(data.userId)) || Number(data.userId) <= 0)) {
       errors.push('UserId must be a positive integer');
     }
 
-    if (
-      data.status &&
-      !['pending', 'in-progress', 'completed', 'cancelled'].includes(
-        data.status
-      )
-    ) {
-      errors.push(
-        "Status must be one of: 'pending', 'in-progress', 'completed', 'cancelled'"
-      );
+    if (data.status && !['pending', 'in-progress', 'completed', 'cancelled'].includes(data.status)) {
+      errors.push("Status must be one of: 'pending', 'in-progress', 'completed', 'cancelled'");
     }
 
     if (data.priority && !['low', 'medium', 'high'].includes(data.priority)) {
@@ -65,3 +51,4 @@ class ValidationService {
 }
 
 module.exports = ValidationService;
+

@@ -17,11 +17,9 @@ node services/tasks-service/src/server.js
 ## API Endpoints
 
 ### GET /tasks
-
 Отримати всі завдання
 
 **Response:**
-
 ```json
 {
   "success": true,
@@ -31,11 +29,9 @@ node services/tasks-service/src/server.js
 ```
 
 ### GET /tasks/:id
-
 Отримати завдання за ID
 
 **Response:**
-
 ```json
 {
   "success": true,
@@ -50,15 +46,12 @@ node services/tasks-service/src/server.js
 ```
 
 ### GET /tasks/user/:userId
-
 Отримати завдання користувача
 
 ### POST /tasks
-
 Створити нове завдання
 
 **Request Body:**
-
 ```json
 {
   "userId": 1,
@@ -71,17 +64,15 @@ node services/tasks-service/src/server.js
 ```
 
 ### PUT /tasks/:id
-
 Оновити завдання
 
 ### DELETE /tasks/:id
-
 Видалити завдання
 
 ### GET /health
-
 Health check endpoint
 
 ## Статичні дані
 
 Сервіс використовує in-memory storage з попередньо заповненими даними для тестування.
+

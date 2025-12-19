@@ -8,9 +8,9 @@ class UsersController {
     this.tasksClient = new TasksClient();
   }
 
-  getAllUsers(req, res) {
+  async getAllUsers(req, res) {
     try {
-      const users = this.repository.findAll();
+      const users = await this.repository.findAll();
       res.status(200).json({
         success: true,
         data: users,
@@ -24,7 +24,7 @@ class UsersController {
     }
   }
 
-  getUserById(req, res) {
+  async getUserById(req, res) {
     try {
       const { id } = req.params;
       const validation = ValidationService.validateId(id);
@@ -36,7 +36,7 @@ class UsersController {
         });
       }
 
-      const user = this.repository.findById(id);
+      const user = await this.repository.findById(id);
 
       if (!user) {
         return res.status(404).json({
@@ -70,7 +70,7 @@ class UsersController {
       }
 
       // Перевірка існування користувача
-      const user = this.repository.findById(id);
+      const user = await this.repository.findById(id);
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -87,8 +87,7 @@ class UsersController {
           total: tasks.length,
           byStatus: {
             pending: tasks.filter((t) => t.status === 'pending').length,
-            'in-progress': tasks.filter((t) => t.status === 'in-progress')
-              .length,
+            'in-progress': tasks.filter((t) => t.status === 'in-progress').length,
             completed: tasks.filter((t) => t.status === 'completed').length,
             cancelled: tasks.filter((t) => t.status === 'cancelled').length,
           },
@@ -119,7 +118,7 @@ class UsersController {
     }
   }
 
-  createUser(req, res) {
+  async createUser(req, res) {
     try {
       const validation = ValidationService.validateUserData(req.body);
 
@@ -131,9 +130,7 @@ class UsersController {
       }
 
       // Перевірка унікальності username
-      const existingUserByUsername = this.repository.findByUsername(
-        req.body.username
-      );
+      const existingUserByUsername = await this.repository.findByUsername(req.body.username);
       if (existingUserByUsername) {
         return res.status(409).json({
           success: false,
@@ -142,7 +139,7 @@ class UsersController {
       }
 
       // Перевірка унікальності email
-      const existingUserByEmail = this.repository.findByEmail(req.body.email);
+      const existingUserByEmail = await this.repository.findByEmail(req.body.email);
       if (existingUserByEmail) {
         return res.status(409).json({
           success: false,
@@ -150,13 +147,30 @@ class UsersController {
         });
       }
 
-      const user = this.repository.create(req.body);
+      const user = await this.repository.create(req.body);
 
       res.status(201).json({
         success: true,
         data: user,
       });
     } catch (error) {
+      // Обробка помилок унікальності від БД
+      if (error.code === 'EREQUEST' && error.number === 2627) {
+        // SQL Server error for unique constraint violation
+        if (error.message.includes('username')) {
+          return res.status(409).json({
+            success: false,
+            error: 'Username already exists',
+          });
+        }
+        if (error.message.includes('email')) {
+          return res.status(409).json({
+            success: false,
+            error: 'Email already exists',
+          });
+        }
+      }
+
       res.status(500).json({
         success: false,
         error: error.message,
@@ -164,7 +178,7 @@ class UsersController {
     }
   }
 
-  updateUser(req, res) {
+  async updateUser(req, res) {
     try {
       const { id } = req.params;
       const idValidation = ValidationService.validateId(id);
@@ -187,7 +201,7 @@ class UsersController {
 
       // Перевірка унікальності email (якщо змінюється)
       if (req.body.email) {
-        const existingUser = this.repository.findByEmail(req.body.email);
+        const existingUser = await this.repository.findByEmail(req.body.email);
         if (existingUser && existingUser.id !== parseInt(id, 10)) {
           return res.status(409).json({
             success: false,
@@ -196,7 +210,7 @@ class UsersController {
         }
       }
 
-      const user = this.repository.update(id, req.body);
+      const user = await this.repository.update(id, req.body);
 
       if (!user) {
         return res.status(404).json({
@@ -210,6 +224,14 @@ class UsersController {
         data: user,
       });
     } catch (error) {
+      // Обробка помилок унікальності від БД
+      if (error.code === 'EREQUEST' && error.number === 2627) {
+        return res.status(409).json({
+          success: false,
+          error: 'Email already exists',
+        });
+      }
+
       res.status(500).json({
         success: false,
         error: error.message,
@@ -217,7 +239,7 @@ class UsersController {
     }
   }
 
-  deleteUser(req, res) {
+  async deleteUser(req, res) {
     try {
       const { id } = req.params;
       const validation = ValidationService.validateId(id);
@@ -229,7 +251,7 @@ class UsersController {
         });
       }
 
-      const deleted = this.repository.delete(id);
+      const deleted = await this.repository.delete(id);
 
       if (!deleted) {
         return res.status(404).json({

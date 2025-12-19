@@ -1,102 +1,167 @@
 const Task = require('../models/Task');
+const { getPool, sql } = require('../database/dbConfig');
 
 class TasksRepository {
-  constructor() {
-    // Статичні дані (in-memory storage)
-    this.tasks = [
-      new Task({
-        id: 1,
-        userId: 1,
-        title: 'Завершити лабораторну роботу №3',
-        description: 'Імплементувати прототип зі статичними даними',
-        status: 'in-progress',
-        priority: 'high',
-        dueDate: '2025-12-20T00:00:00.000Z',
-        createdAt: '2025-12-18T10:00:00.000Z',
-        updatedAt: '2025-12-19T08:00:00.000Z',
-      }),
-      new Task({
-        id: 2,
-        userId: 1,
-        title: 'Написати тести для API',
-        description: 'Створити unit тести для всіх endpoints',
-        status: 'pending',
-        priority: 'medium',
-        dueDate: '2025-12-25T00:00:00.000Z',
-        createdAt: '2025-12-18T11:00:00.000Z',
-        updatedAt: '2025-12-18T11:00:00.000Z',
-      }),
-      new Task({
-        id: 3,
-        userId: 2,
-        title: 'Оновити документацію',
-        description: 'Додати опис нових endpoints',
-        status: 'completed',
-        priority: 'low',
-        dueDate: '2025-12-15T00:00:00.000Z',
-        createdAt: '2025-12-10T09:00:00.000Z',
-        updatedAt: '2025-12-15T14:00:00.000Z',
-      }),
-      new Task({
-        id: 4,
-        userId: 2,
-        title: 'Налаштувати CI/CD',
-        description: 'Налаштувати GitHub Actions',
-        status: 'pending',
-        priority: 'high',
-        dueDate: '2025-12-30T00:00:00.000Z',
-        createdAt: '2025-12-19T12:00:00.000Z',
-        updatedAt: '2025-12-19T12:00:00.000Z',
-      }),
-    ];
-    this.nextId = 5;
-  }
-
-  findAll() {
-    return this.tasks;
-  }
-
-  findById(id) {
-    return this.tasks.find((task) => task.id === parseInt(id, 10));
-  }
-
-  findByUserId(userId) {
-    return this.tasks.filter((task) => task.userId === parseInt(userId, 10));
-  }
-
-  create(taskData) {
-    const task = new Task({
-      ...taskData,
-      id: this.nextId++,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    this.tasks.push(task);
-    return task;
-  }
-
-  update(id, taskData) {
-    const task = this.findById(id);
-    if (!task) {
-      return null;
+  async findAll() {
+    try {
+      const pool = await getPool();
+      const result = await pool.request().query('SELECT * FROM Tasks ORDER BY createdAt DESC');
+      return result.recordset.map((row) => this.mapRowToTask(row));
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findAll:', error);
+      throw error;
     }
-
-    Object.assign(task, {
-      ...taskData,
-      id: task.id, // Не дозволяємо змінювати id
-      updatedAt: new Date().toISOString(),
-    });
-
-    return task;
   }
 
-  delete(id) {
-    const index = this.tasks.findIndex((task) => task.id === parseInt(id, 10));
-    if (index === -1) {
-      return false;
+  async findById(id) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('id', sql.Int, id)
+        .query('SELECT * FROM Tasks WHERE id = @id');
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToTask(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findById:', error);
+      throw error;
     }
-    this.tasks.splice(index, 1);
-    return true;
+  }
+
+  async findByUserId(userId) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('userId', sql.Int, userId)
+        .query('SELECT * FROM Tasks WHERE userId = @userId ORDER BY createdAt DESC');
+
+      return result.recordset.map((row) => this.mapRowToTask(row));
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findByUserId:', error);
+      throw error;
+    }
+  }
+
+  async create(taskData) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('userId', sql.Int, taskData.userId)
+        .input('title', sql.NVarChar(200), taskData.title)
+        .input('description', sql.NVarChar(sql.MAX), taskData.description || '')
+        .input('status', sql.NVarChar(20), taskData.status || 'pending')
+        .input('priority', sql.NVarChar(20), taskData.priority || 'medium')
+        .input('dueDate', sql.DateTime2, taskData.dueDate || null)
+        .query(
+          `INSERT INTO Tasks (userId, title, description, status, priority, dueDate, createdAt, updatedAt)
+           OUTPUT INSERTED.*
+           VALUES (@userId, @title, @description, @status, @priority, @dueDate, GETDATE(), GETDATE())`
+        );
+
+      return this.mapRowToTask(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in create:', error);
+      throw error;
+    }
+  }
+
+  async update(id, taskData) {
+    try {
+      const pool = await getPool();
+
+      // Створюємо динамічний SQL для оновлення тільки переданих полів
+      const updates = [];
+      const request = pool.request().input('id', sql.Int, id);
+
+      if (taskData.title !== undefined) {
+        updates.push('title = @title');
+        request.input('title', sql.NVarChar(200), taskData.title);
+      }
+      if (taskData.description !== undefined) {
+        updates.push('description = @description');
+        request.input('description', sql.NVarChar(sql.MAX), taskData.description);
+      }
+      if (taskData.status !== undefined) {
+        updates.push('status = @status');
+        request.input('status', sql.NVarChar(20), taskData.status);
+      }
+      if (taskData.priority !== undefined) {
+        updates.push('priority = @priority');
+        request.input('priority', sql.NVarChar(20), taskData.priority);
+      }
+      if (taskData.dueDate !== undefined) {
+        updates.push('dueDate = @dueDate');
+        request.input('dueDate', sql.DateTime2, taskData.dueDate || null);
+      }
+      if (taskData.userId !== undefined) {
+        updates.push('userId = @userId');
+        request.input('userId', sql.Int, taskData.userId);
+      }
+
+      if (updates.length === 0) {
+        // Якщо немає полів для оновлення, просто повертаємо існуючий запис
+        return this.findById(id);
+      }
+
+      updates.push('updatedAt = GETDATE()');
+
+      const result = await request.query(
+        `UPDATE Tasks 
+         SET ${updates.join(', ')}
+         OUTPUT INSERTED.*
+         WHERE id = @id`
+      );
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToTask(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in update:', error);
+      throw error;
+    }
+  }
+
+  async delete(id) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('id', sql.Int, id)
+        .query('DELETE FROM Tasks WHERE id = @id');
+
+      return result.rowsAffected[0] > 0;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in delete:', error);
+      throw error;
+    }
+  }
+
+  mapRowToTask(row) {
+    return new Task({
+      id: row.id,
+      userId: row.userId,
+      title: row.title,
+      description: row.description || '',
+      status: row.status,
+      priority: row.priority,
+      dueDate: row.dueDate ? new Date(row.dueDate).toISOString() : null,
+      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
+    });
   }
 }
 

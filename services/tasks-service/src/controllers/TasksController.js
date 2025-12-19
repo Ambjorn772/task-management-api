@@ -6,9 +6,9 @@ class TasksController {
     this.repository = new TasksRepository();
   }
 
-  getAllTasks(req, res) {
+  async getAllTasks(req, res) {
     try {
-      const tasks = this.repository.findAll();
+      const tasks = await this.repository.findAll();
       res.status(200).json({
         success: true,
         data: tasks,
@@ -22,7 +22,7 @@ class TasksController {
     }
   }
 
-  getTaskById(req, res) {
+  async getTaskById(req, res) {
     try {
       const { id } = req.params;
       const validation = ValidationService.validateId(id);
@@ -34,7 +34,7 @@ class TasksController {
         });
       }
 
-      const task = this.repository.findById(id);
+      const task = await this.repository.findById(id);
 
       if (!task) {
         return res.status(404).json({
@@ -55,7 +55,7 @@ class TasksController {
     }
   }
 
-  getTasksByUserId(req, res) {
+  async getTasksByUserId(req, res) {
     try {
       const { userId } = req.params;
       const validation = ValidationService.validateId(userId);
@@ -67,7 +67,7 @@ class TasksController {
         });
       }
 
-      const tasks = this.repository.findByUserId(userId);
+      const tasks = await this.repository.findByUserId(userId);
 
       res.status(200).json({
         success: true,
@@ -82,7 +82,7 @@ class TasksController {
     }
   }
 
-  createTask(req, res) {
+  async createTask(req, res) {
     try {
       const validation = ValidationService.validateTaskData(req.body);
 
@@ -93,7 +93,7 @@ class TasksController {
         });
       }
 
-      const task = this.repository.create(req.body);
+      const task = await this.repository.create(req.body);
 
       res.status(201).json({
         success: true,
@@ -107,7 +107,7 @@ class TasksController {
     }
   }
 
-  updateTask(req, res) {
+  async updateTask(req, res) {
     try {
       const { id } = req.params;
       const idValidation = ValidationService.validateId(id);
@@ -128,7 +128,7 @@ class TasksController {
         });
       }
 
-      const task = this.repository.update(id, req.body);
+      const task = await this.repository.update(id, req.body);
 
       if (!task) {
         return res.status(404).json({
@@ -149,7 +149,7 @@ class TasksController {
     }
   }
 
-  deleteTask(req, res) {
+  async deleteTask(req, res) {
     try {
       const { id } = req.params;
       const validation = ValidationService.validateId(id);
@@ -161,7 +161,7 @@ class TasksController {
         });
       }
 
-      const deleted = this.repository.delete(id);
+      const deleted = await this.repository.delete(id);
 
       if (!deleted) {
         return res.status(404).json({

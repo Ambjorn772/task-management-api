@@ -25,25 +25,21 @@ npm run start:users
 ### Tasks Service
 
 #### Отримати всі завдання
-
 ```bash
 curl http://localhost:3001/tasks
 ```
 
 #### Отримати завдання за ID
-
 ```bash
 curl http://localhost:3001/tasks/1
 ```
 
 #### Отримати завдання користувача
-
 ```bash
 curl http://localhost:3001/tasks/user/1
 ```
 
 #### Створити нове завдання
-
 ```bash
 curl -X POST http://localhost:3001/tasks \
   -H "Content-Type: application/json" \
@@ -57,7 +53,6 @@ curl -X POST http://localhost:3001/tasks \
 ```
 
 #### Оновити завдання
-
 ```bash
 curl -X PUT http://localhost:3001/tasks/1 \
   -H "Content-Type: application/json" \
@@ -67,7 +62,6 @@ curl -X PUT http://localhost:3001/tasks/1 \
 ```
 
 #### Видалити завдання
-
 ```bash
 curl -X DELETE http://localhost:3001/tasks/1
 ```
@@ -75,25 +69,21 @@ curl -X DELETE http://localhost:3001/tasks/1
 ### Users Service
 
 #### Отримати всіх користувачів
-
 ```bash
 curl http://localhost:3002/users
 ```
 
 #### Отримати користувача за ID
-
 ```bash
 curl http://localhost:3002/users/1
 ```
 
 #### Отримати завдання користувача (з інтеграцією)
-
 ```bash
 curl http://localhost:3002/users/1/tasks
 ```
 
 #### Створити нового користувача
-
 ```bash
 curl -X POST http://localhost:3002/users \
   -H "Content-Type: application/json" \
@@ -106,7 +96,6 @@ curl -X POST http://localhost:3002/users \
 ```
 
 #### Оновити користувача
-
 ```bash
 curl -X PUT http://localhost:3002/users/1 \
   -H "Content-Type: application/json" \
@@ -117,7 +106,6 @@ curl -X PUT http://localhost:3002/users/1 \
 ```
 
 #### Видалити користувача
-
 ```bash
 curl -X DELETE http://localhost:3002/users/1
 ```
@@ -125,13 +113,11 @@ curl -X DELETE http://localhost:3002/users/1
 ## Health Check
 
 ### Tasks Service
-
 ```bash
 curl http://localhost:3001/health
 ```
 
 ### Users Service
-
 ```bash
 curl http://localhost:3002/health
 ```
@@ -151,7 +137,6 @@ curl http://localhost:3002/health
 Всі відповіді мають наступний формат:
 
 **Успішна відповідь:**
-
 ```json
 {
   "success": true,
@@ -160,7 +145,6 @@ curl http://localhost:3002/health
 ```
 
 **Помилка:**
-
 ```json
 {
   "success": false,
@@ -168,3 +152,4 @@ curl http://localhost:3002/health
   "errors": ["Validation error 1", "Validation error 2"]
 }
 ```
+

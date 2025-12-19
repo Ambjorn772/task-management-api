@@ -1,90 +1,175 @@
 const User = require('../models/User');
+const { getPool, sql } = require('../database/dbConfig');
 
 class UsersRepository {
-  constructor() {
-    // Статичні дані (in-memory storage)
-    this.users = [
-      new User({
-        id: 1,
-        username: 'john_doe',
-        email: 'john.doe@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        createdAt: '2025-12-01T10:00:00.000Z',
-        updatedAt: '2025-12-01T10:00:00.000Z',
-      }),
-      new User({
-        id: 2,
-        username: 'jane_smith',
-        email: 'jane.smith@example.com',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        createdAt: '2025-12-05T14:30:00.000Z',
-        updatedAt: '2025-12-05T14:30:00.000Z',
-      }),
-      new User({
-        id: 3,
-        username: 'bob_wilson',
-        email: 'bob.wilson@example.com',
-        firstName: 'Bob',
-        lastName: 'Wilson',
-        createdAt: '2025-12-10T09:15:00.000Z',
-        updatedAt: '2025-12-10T09:15:00.000Z',
-      }),
-    ];
-    this.nextId = 4;
-  }
-
-  findAll() {
-    return this.users;
-  }
-
-  findById(id) {
-    return this.users.find((user) => user.id === parseInt(id, 10));
-  }
-
-  findByUsername(username) {
-    return this.users.find((user) => user.username === username);
-  }
-
-  findByEmail(email) {
-    return this.users.find((user) => user.email === email);
-  }
-
-  create(userData) {
-    const user = new User({
-      ...userData,
-      id: this.nextId++,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    this.users.push(user);
-    return user;
-  }
-
-  update(id, userData) {
-    const user = this.findById(id);
-    if (!user) {
-      return null;
+  async findAll() {
+    try {
+      const pool = await getPool();
+      const result = await pool.request().query('SELECT * FROM Users ORDER BY createdAt DESC');
+      return result.recordset.map((row) => this.mapRowToUser(row));
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findAll:', error);
+      throw error;
     }
-
-    Object.assign(user, {
-      ...userData,
-      id: user.id, // Не дозволяємо змінювати id
-      username: user.username, // Не дозволяємо змінювати username
-      updatedAt: new Date().toISOString(),
-    });
-
-    return user;
   }
 
-  delete(id) {
-    const index = this.users.findIndex((user) => user.id === parseInt(id, 10));
-    if (index === -1) {
-      return false;
+  async findById(id) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('id', sql.Int, id)
+        .query('SELECT * FROM Users WHERE id = @id');
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToUser(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findById:', error);
+      throw error;
     }
-    this.users.splice(index, 1);
-    return true;
+  }
+
+  async findByUsername(username) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('username', sql.NVarChar(50), username)
+        .query('SELECT * FROM Users WHERE username = @username');
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToUser(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findByUsername:', error);
+      throw error;
+    }
+  }
+
+  async findByEmail(email) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('email', sql.NVarChar(100), email)
+        .query('SELECT * FROM Users WHERE email = @email');
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToUser(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in findByEmail:', error);
+      throw error;
+    }
+  }
+
+  async create(userData) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('username', sql.NVarChar(50), userData.username)
+        .input('email', sql.NVarChar(100), userData.email)
+        .input('firstName', sql.NVarChar(50), userData.firstName || '')
+        .input('lastName', sql.NVarChar(50), userData.lastName || '')
+        .query(
+          `INSERT INTO Users (username, email, firstName, lastName, createdAt, updatedAt)
+           OUTPUT INSERTED.*
+           VALUES (@username, @email, @firstName, @lastName, GETDATE(), GETDATE())`
+        );
+
+      return this.mapRowToUser(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in create:', error);
+      throw error;
+    }
+  }
+
+  async update(id, userData) {
+    try {
+      const pool = await getPool();
+
+      // Створюємо динамічний SQL для оновлення тільки переданих полів
+      const updates = [];
+      const request = pool.request().input('id', sql.Int, id);
+
+      if (userData.email !== undefined) {
+        updates.push('email = @email');
+        request.input('email', sql.NVarChar(100), userData.email);
+      }
+      if (userData.firstName !== undefined) {
+        updates.push('firstName = @firstName');
+        request.input('firstName', sql.NVarChar(50), userData.firstName);
+      }
+      if (userData.lastName !== undefined) {
+        updates.push('lastName = @lastName');
+        request.input('lastName', sql.NVarChar(50), userData.lastName);
+      }
+
+      if (updates.length === 0) {
+        // Якщо немає полів для оновлення, просто повертаємо існуючий запис
+        return this.findById(id);
+      }
+
+      updates.push('updatedAt = GETDATE()');
+
+      const result = await request.query(
+        `UPDATE Users 
+         SET ${updates.join(', ')}
+         OUTPUT INSERTED.*
+         WHERE id = @id`
+      );
+
+      if (result.recordset.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToUser(result.recordset[0]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in update:', error);
+      throw error;
+    }
+  }
+
+  async delete(id) {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input('id', sql.Int, id)
+        .query('DELETE FROM Users WHERE id = @id');
+
+      return result.rowsAffected[0] > 0;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error in delete:', error);
+      throw error;
+    }
+  }
+
+  mapRowToUser(row) {
+    return new User({
+      id: row.id,
+      username: row.username,
+      email: row.email,
+      firstName: row.firstName || '',
+      lastName: row.lastName || '',
+      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
+    });
   }
 }
 

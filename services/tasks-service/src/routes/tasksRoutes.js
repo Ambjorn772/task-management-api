@@ -11,9 +11,7 @@ router.get('/', (req, res) => tasksController.getAllTasks(req, res));
 router.get('/:id', (req, res) => tasksController.getTaskById(req, res));
 
 // GET /tasks/user/:userId - отримати завдання користувача
-router.get('/user/:userId', (req, res) =>
-  tasksController.getTasksByUserId(req, res)
-);
+router.get('/user/:userId', (req, res) => tasksController.getTasksByUserId(req, res));
 
 // POST /tasks - створити нове завдання
 router.post('/', (req, res) => tasksController.createTask(req, res));
@@ -25,3 +23,4 @@ router.put('/:id', (req, res) => tasksController.updateTask(req, res));
 router.delete('/:id', (req, res) => tasksController.deleteTask(req, res));
 
 module.exports = router;
+
