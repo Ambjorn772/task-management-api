@@ -33,8 +33,8 @@
 ## Технології
 
 - **Node.js** - серверна платформа
-- **Express.js** - веб-фреймворк для створення API
-- **TypeScript** (опціонально) - для типізації
+- **Fastify** - швидкий веб-фреймворк для створення API
+- **SQLite** - файлова база даних (better-sqlite3)
 - **Jest** - фреймворк для тестування
 - **ESLint** - лінтер для перевірки коду
 - **Prettier** - форматтер коду
@@ -47,18 +47,38 @@ nodejs-project/
 ├── services/
 │   ├── tasks-service/
 │   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   ├── models/
+│   │   │   ├── repositories/
+│   │   │   ├── routes/
+│   │   │   ├── services/
+│   │   │   ├── database/
+│   │   │   ├── app.js
+│   │   │   └── server.js
 │   │   ├── tests/
-│   │   └── package.json
+│   │   └── README.md
 │   └── users-service/
 │       ├── src/
+│       │   ├── controllers/
+│       │   ├── models/
+│       │   ├── repositories/
+│       │   ├── routes/
+│       │   ├── services/
+│       │   ├── clients/
+│       │   ├── database/
+│       │   ├── app.js
+│       │   └── server.js
 │       ├── tests/
-│       └── package.json
+│       └── README.md
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── COMPONENT_DIAGRAM.md
 │   ├── ER_DIAGRAM.md
 │   ├── DATA_SCENARIOS.md
 │   └── DIAGRAMS.md
+├── data/
+│   ├── tasks.db
+│   └── users.db
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml
@@ -121,27 +141,20 @@ nodejs-project/
 **Реалізовано:**
 - Tasks Service з 6 endpoints (GET /tasks, GET /tasks/:id, GET /tasks/user/:userId, POST /tasks, PUT /tasks/:id, DELETE /tasks/:id)
 - Users Service з 6 endpoints (GET /users, GET /users/:id, GET /users/:id/tasks, POST /users, PUT /users/:id, DELETE /users/:id)
-- In-memory storage зі статичними даними
 - Валідація даних
 - Інтеграція між сервісами (Users Service → Tasks Service)
 - Агрегація статистики для завдань користувача
 
-**Документація:**
-- [API Usage Guide](API_USAGE.md)
-
 ### Лабораторна робота № 4 ✅
-- [x] Інтеграція з базою даних (MS SQL Server)
+- [x] Інтеграція з базою даних (SQLite)
 - [x] Заміна статичних даних на реальну роботу з БД
 
 **Реалізовано:**
-- Підключення до MS SQL Server через `mssql`
+- Підключення до SQLite через `better-sqlite3`
 - Створення таблиць Users та Tasks
-- Оновлення репозиторіїв для роботи з БД
+- Оновлення репозиторіїв для роботи з SQLite
 - Автоматична ініціалізація БД при запуску
 - Початкові дані в БД
-
-**Документація:**
-- [Database Setup Guide](DATABASE_SETUP.md)
 
 ### Лабораторна робота № 5
 - [ ] Unit-тести для модулів
@@ -160,14 +173,20 @@ nodejs-project/
 # Встановлення залежностей
 npm install
 
-# Запуск Tasks Service
-cd services/tasks-service
-npm start
+# Запуск Tasks Service (термінал 1)
+npm run start:tasks
 
-# Запуск Users Service
-cd services/users-service
-npm start
+# Запуск Users Service (термінал 2)
+npm run start:users
 ```
+
+**Важливо:** Обидва сервіси повинні працювати одночасно. Tasks Service працює на порту 3001, Users Service на порту 3002.
+
+## База даних
+
+Проект використовує SQLite - файлову базу даних, яка не потребує окремого сервера. Бази даних автоматично створюються при першому запуску сервісів в папці `data/`:
+- `data/tasks.db` - база даних для Tasks Service
+- `data/users.db` - база даних для Users Service
 
 ## Тестування
 

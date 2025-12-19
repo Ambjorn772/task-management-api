@@ -1,12 +1,11 @@
 const Task = require('../models/Task');
-const { getPool, sql } = require('../database/dbConfig');
+const db = require('../database/dbConfig');
 
 class TasksRepository {
-  async findAll() {
+  findAll() {
     try {
-      const pool = await getPool();
-      const result = await pool.request().query('SELECT * FROM Tasks ORDER BY createdAt DESC');
-      return result.recordset.map((row) => this.mapRowToTask(row));
+      const rows = db.prepare('SELECT * FROM Tasks ORDER BY createdAt DESC').all();
+      return rows.map((row) => this.mapRowToTask(row));
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findAll:', error);
@@ -14,19 +13,13 @@ class TasksRepository {
     }
   }
 
-  async findById(id) {
+  findById(id) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('id', sql.Int, id)
-        .query('SELECT * FROM Tasks WHERE id = @id');
-
-      if (result.recordset.length === 0) {
+      const row = db.prepare('SELECT * FROM Tasks WHERE id = ?').get(id);
+      if (!row) {
         return null;
       }
-
-      return this.mapRowToTask(result.recordset[0]);
+      return this.mapRowToTask(row);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findById:', error);
@@ -34,15 +27,10 @@ class TasksRepository {
     }
   }
 
-  async findByUserId(userId) {
+  findByUserId(userId) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('userId', sql.Int, userId)
-        .query('SELECT * FROM Tasks WHERE userId = @userId ORDER BY createdAt DESC');
-
-      return result.recordset.map((row) => this.mapRowToTask(row));
+      const rows = db.prepare('SELECT * FROM Tasks WHERE userId = ? ORDER BY createdAt DESC').all(userId);
+      return rows.map((row) => this.mapRowToTask(row));
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findByUserId:', error);
@@ -50,24 +38,26 @@ class TasksRepository {
     }
   }
 
-  async create(taskData) {
+  create(taskData) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('userId', sql.Int, taskData.userId)
-        .input('title', sql.NVarChar(200), taskData.title)
-        .input('description', sql.NVarChar(sql.MAX), taskData.description || '')
-        .input('status', sql.NVarChar(20), taskData.status || 'pending')
-        .input('priority', sql.NVarChar(20), taskData.priority || 'medium')
-        .input('dueDate', sql.DateTime2, taskData.dueDate || null)
-        .query(
+      const now = new Date().toISOString();
+      const result = db
+        .prepare(
           `INSERT INTO Tasks (userId, title, description, status, priority, dueDate, createdAt, updatedAt)
-           OUTPUT INSERTED.*
-           VALUES (@userId, @title, @description, @status, @priority, @dueDate, GETDATE(), GETDATE())`
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          taskData.userId,
+          taskData.title,
+          taskData.description || '',
+          taskData.status || 'pending',
+          taskData.priority || 'medium',
+          taskData.dueDate || null,
+          now,
+          now
         );
 
-      return this.mapRowToTask(result.recordset[0]);
+      return this.findById(result.lastInsertRowid);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in create:', error);
@@ -75,58 +65,51 @@ class TasksRepository {
     }
   }
 
-  async update(id, taskData) {
+  update(id, taskData) {
     try {
-      const pool = await getPool();
-
-      // Створюємо динамічний SQL для оновлення тільки переданих полів
       const updates = [];
-      const request = pool.request().input('id', sql.Int, id);
+      const values = [];
 
       if (taskData.title !== undefined) {
-        updates.push('title = @title');
-        request.input('title', sql.NVarChar(200), taskData.title);
+        updates.push('title = ?');
+        values.push(taskData.title);
       }
       if (taskData.description !== undefined) {
-        updates.push('description = @description');
-        request.input('description', sql.NVarChar(sql.MAX), taskData.description);
+        updates.push('description = ?');
+        values.push(taskData.description);
       }
       if (taskData.status !== undefined) {
-        updates.push('status = @status');
-        request.input('status', sql.NVarChar(20), taskData.status);
+        updates.push('status = ?');
+        values.push(taskData.status);
       }
       if (taskData.priority !== undefined) {
-        updates.push('priority = @priority');
-        request.input('priority', sql.NVarChar(20), taskData.priority);
+        updates.push('priority = ?');
+        values.push(taskData.priority);
       }
       if (taskData.dueDate !== undefined) {
-        updates.push('dueDate = @dueDate');
-        request.input('dueDate', sql.DateTime2, taskData.dueDate || null);
+        updates.push('dueDate = ?');
+        values.push(taskData.dueDate || null);
       }
       if (taskData.userId !== undefined) {
-        updates.push('userId = @userId');
-        request.input('userId', sql.Int, taskData.userId);
+        updates.push('userId = ?');
+        values.push(taskData.userId);
       }
 
       if (updates.length === 0) {
-        // Якщо немає полів для оновлення, просто повертаємо існуючий запис
         return this.findById(id);
       }
 
-      updates.push('updatedAt = GETDATE()');
+      updates.push('updatedAt = ?');
+      values.push(new Date().toISOString());
+      values.push(id);
 
-      const result = await request.query(
-        `UPDATE Tasks 
-         SET ${updates.join(', ')}
-         OUTPUT INSERTED.*
-         WHERE id = @id`
-      );
+      const result = db.prepare(`UPDATE Tasks SET ${updates.join(', ')} WHERE id = ?`).run(...values);
 
-      if (result.recordset.length === 0) {
+      if (result.changes === 0) {
         return null;
       }
 
-      return this.mapRowToTask(result.recordset[0]);
+      return this.findById(id);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in update:', error);
@@ -134,15 +117,10 @@ class TasksRepository {
     }
   }
 
-  async delete(id) {
+  delete(id) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('id', sql.Int, id)
-        .query('DELETE FROM Tasks WHERE id = @id');
-
-      return result.rowsAffected[0] > 0;
+      const result = db.prepare('DELETE FROM Tasks WHERE id = ?').run(id);
+      return result.changes > 0;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in delete:', error);
@@ -158,9 +136,9 @@ class TasksRepository {
       description: row.description || '',
       status: row.status,
       priority: row.priority,
-      dueDate: row.dueDate ? new Date(row.dueDate).toISOString() : null,
-      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
-      updatedAt: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
+      dueDate: row.dueDate || null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     });
   }
 }

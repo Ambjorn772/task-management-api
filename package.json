@@ -40,6 +40,7 @@
     ]
   },
   "dependencies": {
-    "mssql": "^12.2.0"
+    "better-sqlite3": "^12.5.0",
+    "fastify": "^5.6.2"
   }
 }

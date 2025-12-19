@@ -1,44 +1,85 @@
-const { getPool, sql } = require('./dbConfig');
+const db = require('./dbConfig');
 
-async function initializeDatabase() {
+function initializeDatabase() {
   try {
-    const pool = await getPool();
-
     // Створення таблиці Tasks
-    await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Tasks' AND xtype='U')
-      CREATE TABLE Tasks (
-        id INT PRIMARY KEY IDENTITY(1,1),
-        userId INT NOT NULL,
-        title NVARCHAR(200) NOT NULL,
-        description NVARCHAR(MAX),
-        status NVARCHAR(20) NOT NULL DEFAULT 'pending',
-        priority NVARCHAR(20) NOT NULL DEFAULT 'medium',
-        dueDate DATETIME2,
-        createdAt DATETIME2 NOT NULL DEFAULT GETDATE(),
-        updatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
-        CONSTRAINT CHK_Status CHECK (status IN ('pending', 'in-progress', 'completed', 'cancelled')),
-        CONSTRAINT CHK_Priority CHECK (priority IN ('low', 'medium', 'high'))
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS Tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'in-progress', 'completed', 'cancelled')),
+        priority TEXT NOT NULL DEFAULT 'medium' CHECK(priority IN ('low', 'medium', 'high')),
+        dueDate TEXT,
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `);
 
     // Створення індексу для userId
-    await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Tasks_UserId')
-      CREATE INDEX IX_Tasks_UserId ON Tasks(userId)
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS IX_Tasks_UserId ON Tasks(userId)
     `);
 
     // Вставка початкових даних (якщо таблиця порожня)
-    const result = await pool.request().query('SELECT COUNT(*) as count FROM Tasks');
-    if (result.recordset[0].count === 0) {
-      await pool.request().query(`
+    const count = db.prepare('SELECT COUNT(*) as count FROM Tasks').get();
+    if (count.count === 0) {
+      const insert = db.prepare(`
         INSERT INTO Tasks (userId, title, description, status, priority, dueDate, createdAt, updatedAt)
-        VALUES
-          (1, N'Завершити лабораторну роботу №3', N'Імплементувати прототип зі статичними даними', 'in-progress', 'high', '2025-12-20', '2025-12-18 10:00:00', '2025-12-19 08:00:00'),
-          (1, N'Написати тести для API', N'Створити unit тести для всіх endpoints', 'pending', 'medium', '2025-12-25', '2025-12-18 11:00:00', '2025-12-18 11:00:00'),
-          (2, N'Оновити документацію', N'Додати опис нових endpoints', 'completed', 'low', '2025-12-15', '2025-12-10 09:00:00', '2025-12-15 14:00:00'),
-          (2, N'Налаштувати CI/CD', N'Налаштувати GitHub Actions', 'pending', 'high', '2025-12-30', '2025-12-19 12:00:00', '2025-12-19 12:00:00')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
+
+      const tasks = [
+        [
+          1,
+          'Завершити лабораторну роботу №3',
+          'Імплементувати прототип зі статичними даними',
+          'in-progress',
+          'high',
+          '2025-12-20T00:00:00.000Z',
+          '2025-12-18T10:00:00.000Z',
+          '2025-12-19T08:00:00.000Z',
+        ],
+        [
+          1,
+          'Написати тести для API',
+          'Створити unit тести для всіх endpoints',
+          'pending',
+          'medium',
+          '2025-12-25T00:00:00.000Z',
+          '2025-12-18T11:00:00.000Z',
+          '2025-12-18T11:00:00.000Z',
+        ],
+        [
+          2,
+          'Оновити документацію',
+          'Додати опис нових endpoints',
+          'completed',
+          'low',
+          '2025-12-15T00:00:00.000Z',
+          '2025-12-10T09:00:00.000Z',
+          '2025-12-15T14:00:00.000Z',
+        ],
+        [
+          2,
+          'Налаштувати CI/CD',
+          'Налаштувати GitHub Actions',
+          'pending',
+          'high',
+          '2025-12-30T00:00:00.000Z',
+          '2025-12-19T12:00:00.000Z',
+          '2025-12-19T12:00:00.000Z',
+        ],
+      ];
+
+      const insertMany = db.transaction((tasks) => {
+        for (const task of tasks) {
+          insert.run(...task);
+        }
+      });
+
+      insertMany(tasks);
       // eslint-disable-next-line no-console
       console.log('Initial data inserted into Tasks table');
     }
@@ -53,4 +94,3 @@ async function initializeDatabase() {
 }
 
 module.exports = { initializeDatabase };
-

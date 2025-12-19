@@ -1,12 +1,11 @@
 const User = require('../models/User');
-const { getPool, sql } = require('../database/dbConfig');
+const db = require('../database/dbConfig');
 
 class UsersRepository {
-  async findAll() {
+  findAll() {
     try {
-      const pool = await getPool();
-      const result = await pool.request().query('SELECT * FROM Users ORDER BY createdAt DESC');
-      return result.recordset.map((row) => this.mapRowToUser(row));
+      const rows = db.prepare('SELECT * FROM Users ORDER BY createdAt DESC').all();
+      return rows.map((row) => this.mapRowToUser(row));
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findAll:', error);
@@ -14,19 +13,13 @@ class UsersRepository {
     }
   }
 
-  async findById(id) {
+  findById(id) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('id', sql.Int, id)
-        .query('SELECT * FROM Users WHERE id = @id');
-
-      if (result.recordset.length === 0) {
+      const row = db.prepare('SELECT * FROM Users WHERE id = ?').get(id);
+      if (!row) {
         return null;
       }
-
-      return this.mapRowToUser(result.recordset[0]);
+      return this.mapRowToUser(row);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findById:', error);
@@ -34,19 +27,13 @@ class UsersRepository {
     }
   }
 
-  async findByUsername(username) {
+  findByUsername(username) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('username', sql.NVarChar(50), username)
-        .query('SELECT * FROM Users WHERE username = @username');
-
-      if (result.recordset.length === 0) {
+      const row = db.prepare('SELECT * FROM Users WHERE username = ?').get(username);
+      if (!row) {
         return null;
       }
-
-      return this.mapRowToUser(result.recordset[0]);
+      return this.mapRowToUser(row);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findByUsername:', error);
@@ -54,19 +41,13 @@ class UsersRepository {
     }
   }
 
-  async findByEmail(email) {
+  findByEmail(email) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('email', sql.NVarChar(100), email)
-        .query('SELECT * FROM Users WHERE email = @email');
-
-      if (result.recordset.length === 0) {
+      const row = db.prepare('SELECT * FROM Users WHERE email = ?').get(email);
+      if (!row) {
         return null;
       }
-
-      return this.mapRowToUser(result.recordset[0]);
+      return this.mapRowToUser(row);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in findByEmail:', error);
@@ -74,22 +55,24 @@ class UsersRepository {
     }
   }
 
-  async create(userData) {
+  create(userData) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('username', sql.NVarChar(50), userData.username)
-        .input('email', sql.NVarChar(100), userData.email)
-        .input('firstName', sql.NVarChar(50), userData.firstName || '')
-        .input('lastName', sql.NVarChar(50), userData.lastName || '')
-        .query(
+      const now = new Date().toISOString();
+      const result = db
+        .prepare(
           `INSERT INTO Users (username, email, firstName, lastName, createdAt, updatedAt)
-           OUTPUT INSERTED.*
-           VALUES (@username, @email, @firstName, @lastName, GETDATE(), GETDATE())`
+           VALUES (?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          userData.username,
+          userData.email,
+          userData.firstName || '',
+          userData.lastName || '',
+          now,
+          now
         );
 
-      return this.mapRowToUser(result.recordset[0]);
+      return this.findById(result.lastInsertRowid);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in create:', error);
@@ -97,46 +80,39 @@ class UsersRepository {
     }
   }
 
-  async update(id, userData) {
+  update(id, userData) {
     try {
-      const pool = await getPool();
-
-      // Створюємо динамічний SQL для оновлення тільки переданих полів
       const updates = [];
-      const request = pool.request().input('id', sql.Int, id);
+      const values = [];
 
       if (userData.email !== undefined) {
-        updates.push('email = @email');
-        request.input('email', sql.NVarChar(100), userData.email);
+        updates.push('email = ?');
+        values.push(userData.email);
       }
       if (userData.firstName !== undefined) {
-        updates.push('firstName = @firstName');
-        request.input('firstName', sql.NVarChar(50), userData.firstName);
+        updates.push('firstName = ?');
+        values.push(userData.firstName);
       }
       if (userData.lastName !== undefined) {
-        updates.push('lastName = @lastName');
-        request.input('lastName', sql.NVarChar(50), userData.lastName);
+        updates.push('lastName = ?');
+        values.push(userData.lastName);
       }
 
       if (updates.length === 0) {
-        // Якщо немає полів для оновлення, просто повертаємо існуючий запис
         return this.findById(id);
       }
 
-      updates.push('updatedAt = GETDATE()');
+      updates.push('updatedAt = ?');
+      values.push(new Date().toISOString());
+      values.push(id);
 
-      const result = await request.query(
-        `UPDATE Users 
-         SET ${updates.join(', ')}
-         OUTPUT INSERTED.*
-         WHERE id = @id`
-      );
+      const result = db.prepare(`UPDATE Users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
 
-      if (result.recordset.length === 0) {
+      if (result.changes === 0) {
         return null;
       }
 
-      return this.mapRowToUser(result.recordset[0]);
+      return this.findById(id);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in update:', error);
@@ -144,15 +120,10 @@ class UsersRepository {
     }
   }
 
-  async delete(id) {
+  delete(id) {
     try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input('id', sql.Int, id)
-        .query('DELETE FROM Users WHERE id = @id');
-
-      return result.rowsAffected[0] > 0;
+      const result = db.prepare('DELETE FROM Users WHERE id = ?').run(id);
+      return result.changes > 0;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error in delete:', error);
@@ -167,8 +138,8 @@ class UsersRepository {
       email: row.email,
       firstName: row.firstName || '',
       lastName: row.lastName || '',
-      createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
-      updatedAt: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     });
   }
 }

@@ -1,26 +1,25 @@
-const express = require('express');
 const TasksController = require('../controllers/TasksController');
 
-const router = express.Router();
 const tasksController = new TasksController();
 
-// GET /tasks - отримати всі завдання
-router.get('/', (req, res) => tasksController.getAllTasks(req, res));
+async function tasksRoutes(fastify, options) {
+  // GET /tasks - отримати всі завдання
+  fastify.get('/', tasksController.getAllTasks.bind(tasksController));
 
-// GET /tasks/:id - отримати завдання за ID
-router.get('/:id', (req, res) => tasksController.getTaskById(req, res));
+  // GET /tasks/:id - отримати завдання за ID
+  fastify.get('/:id', tasksController.getTaskById.bind(tasksController));
 
-// GET /tasks/user/:userId - отримати завдання користувача
-router.get('/user/:userId', (req, res) => tasksController.getTasksByUserId(req, res));
+  // GET /tasks/user/:userId - отримати завдання користувача
+  fastify.get('/user/:userId', tasksController.getTasksByUserId.bind(tasksController));
 
-// POST /tasks - створити нове завдання
-router.post('/', (req, res) => tasksController.createTask(req, res));
+  // POST /tasks - створити нове завдання
+  fastify.post('/', tasksController.createTask.bind(tasksController));
 
-// PUT /tasks/:id - оновити завдання
-router.put('/:id', (req, res) => tasksController.updateTask(req, res));
+  // PUT /tasks/:id - оновити завдання
+  fastify.put('/:id', tasksController.updateTask.bind(tasksController));
 
-// DELETE /tasks/:id - видалити завдання
-router.delete('/:id', (req, res) => tasksController.deleteTask(req, res));
+  // DELETE /tasks/:id - видалити завдання
+  fastify.delete('/:id', tasksController.deleteTask.bind(tasksController));
+}
 
-module.exports = router;
-
+module.exports = tasksRoutes;

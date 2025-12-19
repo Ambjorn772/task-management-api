@@ -6,176 +6,176 @@ class TasksController {
     this.repository = new TasksRepository();
   }
 
-  async getAllTasks(req, res) {
+  async getAllTasks(request, reply) {
     try {
-      const tasks = await this.repository.findAll();
-      res.status(200).json({
+      const tasks = this.repository.findAll();
+      return reply.code(200).send({
         success: true,
         data: tasks,
         count: tasks.length,
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });
     }
   }
 
-  async getTaskById(req, res) {
+  async getTaskById(request, reply) {
     try {
-      const { id } = req.params;
+      const { id } = request.params;
       const validation = ValidationService.validateId(id);
 
       if (!validation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: validation.errors,
         });
       }
 
-      const task = await this.repository.findById(id);
+      const task = this.repository.findById(id);
 
       if (!task) {
-        return res.status(404).json({
+        return reply.code(404).send({
           success: false,
           error: 'Task not found',
         });
       }
 
-      res.status(200).json({
+      return reply.code(200).send({
         success: true,
         data: task,
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });
     }
   }
 
-  async getTasksByUserId(req, res) {
+  async getTasksByUserId(request, reply) {
     try {
-      const { userId } = req.params;
+      const { userId } = request.params;
       const validation = ValidationService.validateId(userId);
 
       if (!validation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: validation.errors,
         });
       }
 
-      const tasks = await this.repository.findByUserId(userId);
+      const tasks = this.repository.findByUserId(userId);
 
-      res.status(200).json({
+      return reply.code(200).send({
         success: true,
         data: tasks,
         count: tasks.length,
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });
     }
   }
 
-  async createTask(req, res) {
+  async createTask(request, reply) {
     try {
-      const validation = ValidationService.validateTaskData(req.body);
+      const validation = ValidationService.validateTaskData(request.body);
 
       if (!validation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: validation.errors,
         });
       }
 
-      const task = await this.repository.create(req.body);
+      const task = this.repository.create(request.body);
 
-      res.status(201).json({
+      return reply.code(201).send({
         success: true,
         data: task,
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });
     }
   }
 
-  async updateTask(req, res) {
+  async updateTask(request, reply) {
     try {
-      const { id } = req.params;
+      const { id } = request.params;
       const idValidation = ValidationService.validateId(id);
 
       if (!idValidation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: idValidation.errors,
         });
       }
 
-      const dataValidation = ValidationService.validateTaskData(req.body, true);
+      const dataValidation = ValidationService.validateTaskData(request.body, true);
 
       if (!dataValidation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: dataValidation.errors,
         });
       }
 
-      const task = await this.repository.update(id, req.body);
+      const task = this.repository.update(id, request.body);
 
       if (!task) {
-        return res.status(404).json({
+        return reply.code(404).send({
           success: false,
           error: 'Task not found',
         });
       }
 
-      res.status(200).json({
+      return reply.code(200).send({
         success: true,
         data: task,
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });
     }
   }
 
-  async deleteTask(req, res) {
+  async deleteTask(request, reply) {
     try {
-      const { id } = req.params;
+      const { id } = request.params;
       const validation = ValidationService.validateId(id);
 
       if (!validation.isValid) {
-        return res.status(400).json({
+        return reply.code(400).send({
           success: false,
           errors: validation.errors,
         });
       }
 
-      const deleted = await this.repository.delete(id);
+      const deleted = this.repository.delete(id);
 
       if (!deleted) {
-        return res.status(404).json({
+        return reply.code(404).send({
           success: false,
           error: 'Task not found',
         });
       }
 
-      res.status(200).json({
+      return reply.code(200).send({
         success: true,
         message: 'Task deleted successfully',
       });
     } catch (error) {
-      res.status(500).json({
+      return reply.code(500).send({
         success: false,
         error: error.message,
       });

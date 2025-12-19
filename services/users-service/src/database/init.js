@@ -1,44 +1,50 @@
-const { getPool, sql } = require('./dbConfig');
+const db = require('./dbConfig');
 
-async function initializeDatabase() {
+function initializeDatabase() {
   try {
-    const pool = await getPool();
-
     // Створення таблиці Users
-    await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
-      CREATE TABLE Users (
-        id INT PRIMARY KEY IDENTITY(1,1),
-        username NVARCHAR(50) NOT NULL UNIQUE,
-        email NVARCHAR(100) NOT NULL UNIQUE,
-        firstName NVARCHAR(50),
-        lastName NVARCHAR(50),
-        createdAt DATETIME2 NOT NULL DEFAULT GETDATE(),
-        updatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS Users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        firstName TEXT,
+        lastName TEXT,
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `);
 
     // Створення індексів
-    await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Users_Username')
-      CREATE UNIQUE INDEX IX_Users_Username ON Users(username)
+    db.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS IX_Users_Username ON Users(username)
     `);
 
-    await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Users_Email')
-      CREATE UNIQUE INDEX IX_Users_Email ON Users(email)
+    db.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS IX_Users_Email ON Users(email)
     `);
 
     // Вставка початкових даних (якщо таблиця порожня)
-    const result = await pool.request().query('SELECT COUNT(*) as count FROM Users');
-    if (result.recordset[0].count === 0) {
-      await pool.request().query(`
+    const count = db.prepare('SELECT COUNT(*) as count FROM Users').get();
+    if (count.count === 0) {
+      const insert = db.prepare(`
         INSERT INTO Users (username, email, firstName, lastName, createdAt, updatedAt)
-        VALUES
-          (N'john_doe', N'john.doe@example.com', N'John', N'Doe', '2025-12-01 10:00:00', '2025-12-01 10:00:00'),
-          (N'jane_smith', N'jane.smith@example.com', N'Jane', N'Smith', '2025-12-05 14:30:00', '2025-12-05 14:30:00'),
-          (N'bob_wilson', N'bob.wilson@example.com', N'Bob', N'Wilson', '2025-12-10 09:15:00', '2025-12-10 09:15:00')
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
+
+      const users = [
+        ['john_doe', 'john.doe@example.com', 'John', 'Doe', '2025-12-01T10:00:00.000Z', '2025-12-01T10:00:00.000Z'],
+        ['jane_smith', 'jane.smith@example.com', 'Jane', 'Smith', '2025-12-05T14:30:00.000Z', '2025-12-05T14:30:00.000Z'],
+        ['bob_wilson', 'bob.wilson@example.com', 'Bob', 'Wilson', '2025-12-10T09:15:00.000Z', '2025-12-10T09:15:00.000Z'],
+      ];
+
+      const insertMany = db.transaction((users) => {
+        for (const user of users) {
+          insert.run(...user);
+        }
+      });
+
+      insertMany(users);
       // eslint-disable-next-line no-console
       console.log('Initial data inserted into Users table');
     }
@@ -53,4 +59,3 @@ async function initializeDatabase() {
 }
 
 module.exports = { initializeDatabase };
-

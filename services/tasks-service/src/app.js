@@ -1,24 +1,12 @@
-const express = require('express');
+const fastify = require('fastify')({ logger: true });
 const tasksRoutes = require('./routes/tasksRoutes');
 
-const app = express();
-
-// Middleware для парсингу JSON
-app.use(express.json());
-
-// Middleware для логування запитів
-app.use((req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
-// Routes
-app.use('/tasks', tasksRoutes);
+// Реєстрація роутів
+fastify.register(tasksRoutes, { prefix: '/tasks' });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
+fastify.get('/health', async (request, reply) => {
+  return reply.code(200).send({
     success: true,
     service: 'Tasks Service',
     status: 'running',
@@ -27,22 +15,11 @@ app.get('/health', (req, res) => {
 });
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({
+fastify.setNotFoundHandler((request, reply) => {
+  reply.code(404).send({
     success: false,
     error: 'Route not found',
   });
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-  });
-});
-
-module.exports = app;
-
+module.exports = fastify;

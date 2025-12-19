@@ -25,6 +25,11 @@ Thumbs.db
 # Database setup (local only)
 DATABASE_SETUP.md
 
+# SQLite databases
+data/
+*.db
+*.db-journal
+
 # Environment variables
 .env
 .env.local

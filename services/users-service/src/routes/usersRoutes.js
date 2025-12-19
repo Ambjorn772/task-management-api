@@ -1,26 +1,25 @@
-const express = require('express');
 const UsersController = require('../controllers/UsersController');
 
-const router = express.Router();
 const usersController = new UsersController();
 
-// GET /users - отримати всіх користувачів
-router.get('/', (req, res) => usersController.getAllUsers(req, res));
+async function usersRoutes(fastify, options) {
+  // GET /users - отримати всіх користувачів
+  fastify.get('/', usersController.getAllUsers.bind(usersController));
 
-// GET /users/:id - отримати користувача за ID
-router.get('/:id', (req, res) => usersController.getUserById(req, res));
+  // GET /users/:id - отримати користувача за ID
+  fastify.get('/:id', usersController.getUserById.bind(usersController));
 
-// GET /users/:id/tasks - отримати завдання користувача (інтеграція з Tasks Service)
-router.get('/:id/tasks', (req, res) => usersController.getUserTasks(req, res));
+  // GET /users/:id/tasks - отримати завдання користувача (інтеграція з Tasks Service)
+  fastify.get('/:id/tasks', usersController.getUserTasks.bind(usersController));
 
-// POST /users - створити нового користувача
-router.post('/', (req, res) => usersController.createUser(req, res));
+  // POST /users - створити нового користувача
+  fastify.post('/', usersController.createUser.bind(usersController));
 
-// PUT /users/:id - оновити користувача
-router.put('/:id', (req, res) => usersController.updateUser(req, res));
+  // PUT /users/:id - оновити користувача
+  fastify.put('/:id', usersController.updateUser.bind(usersController));
 
-// DELETE /users/:id - видалити користувача
-router.delete('/:id', (req, res) => usersController.deleteUser(req, res));
+  // DELETE /users/:id - видалити користувача
+  fastify.delete('/:id', usersController.deleteUser.bind(usersController));
+}
 
-module.exports = router;
-
+module.exports = usersRoutes;
