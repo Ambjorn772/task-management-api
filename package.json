@@ -13,7 +13,8 @@
     "format": "npx prettier --write \"**/*.{js,json,md}\"",
     "format:check": "npx prettier --check \"**/*.{js,json,md}\"",
     "build": "echo \"Build successful\" && exit 0",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "pre-commit": "lint-staged && npm run lint && npm test && npm run build"
   },
   "keywords": [
     "nodejs",
@@ -33,8 +34,5 @@
     "*.md": [
       "prettier --write"
     ]
-  },
-  "devDependencies": {
-    "lint-staged": "^16.2.7"
   }
 }
