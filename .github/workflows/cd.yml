@@ -1,0 +1,60 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Stage
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Stage Server
+        run: |
+          echo "🚀 Deployment would happen here"
+          echo "For production deployment, you can use:"
+          echo "- Railway.app (railway up)"
+          echo "- Render.com (render deploy)"
+          echo "- Heroku (git push heroku main)"
+          echo "- DigitalOcean App Platform"
+          echo "- AWS Elastic Beanstalk"
+          echo ""
+          echo "Current deployment target: Stage Server"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+
+      # Example: Deploy to Railway (uncomment and configure if using Railway)
+      # - name: Deploy to Railway
+      #   uses: bervProject/railway-deploy@v1.0.0
+      #   with:
+      #     railway_token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: task-management-api
+
+      # Example: Deploy to Render (uncomment and configure if using Render)
+      # - name: Deploy to Render
+      #   uses: johnbeynon/render-deploy-action@v0.0.8
+      #   with:
+      #     service-id: ${{ secrets.RENDER_SERVICE_ID }}
+      #     api-key: ${{ secrets.RENDER_API_KEY }}
+
