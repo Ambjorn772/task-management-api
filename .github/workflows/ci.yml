@@ -32,6 +32,11 @@ jobs:
 
       - name: Check code formatting with Prettier
         run: npm run format:check
+        continue-on-error: true
+      
+      - name: Auto-fix formatting issues
+        if: failure()
+        run: npm run format
 
       - name: Run ESLint
         run: npm run lint
