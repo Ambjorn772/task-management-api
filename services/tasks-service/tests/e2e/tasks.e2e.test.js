@@ -1,4 +1,4 @@
-const fastify = require('fastify')();
+const fastify = require('fastify');
 const tasksRoutes = require('../../src/routes/tasksRoutes');
 
 // Мокируємо БД для E2E тестів

@@ -31,11 +31,7 @@ jobs:
         continue-on-error: false
 
       - name: Check code formatting with Prettier
-        run: |
-          npm run format:check || {
-            echo "⚠️ Formatting issues found, but continuing..."
-            exit 0
-          }
+        run: npm run format:check || true
 
       - name: Run ESLint
         run: npm run lint
