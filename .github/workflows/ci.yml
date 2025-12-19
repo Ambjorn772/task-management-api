@@ -27,7 +27,8 @@ jobs:
           sudo apt-get install -y build-essential python3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        continue-on-error: false
 
       - name: Check code formatting with Prettier
         run: npm run format:check
@@ -55,7 +56,8 @@ jobs:
           sudo apt-get install -y build-essential python3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        continue-on-error: false
 
       - name: Run unit tests
         run: npm run test:unit
@@ -96,7 +98,8 @@ jobs:
           sudo apt-get install -y build-essential python3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        continue-on-error: false
 
       - name: Build project
         run: npm run build
@@ -124,7 +127,8 @@ jobs:
           sudo apt-get install -y build-essential python3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        continue-on-error: false
 
       - name: Validate commit messages
         uses: wagoid/commitlint-github-action@v6

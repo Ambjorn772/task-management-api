@@ -27,7 +27,8 @@ jobs:
           sudo apt-get install -y build-essential python3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        continue-on-error: false
 
       - name: Run tests
         run: npm test
