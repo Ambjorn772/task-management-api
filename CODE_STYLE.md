@@ -3,6 +3,7 @@
 ## Вибір стилю коду
 
 Проект використовує **ESLint** з конфігурацією, що базується на:
+
 - `eslint:recommended` - базові правила ESLint
 - `plugin:node/recommended` - правила для Node.js
 - `prettier` - інтеграція з Prettier для форматування
@@ -14,6 +15,7 @@
 Проект використовує **Prettier** для автоматичного форматування коду.
 
 **Конфігурація (.prettierrc):**
+
 - `semi: true` - використання крапки з комою
 - `singleQuote: true` - одинарні лапки
 - `printWidth: 80` - максимальна довжина рядка
@@ -21,6 +23,7 @@
 - `trailingComma: "es5"` - кома в кінці для ES5
 
 **Команди:**
+
 ```bash
 # Форматувати весь код
 npm run format
@@ -34,6 +37,7 @@ npm run format:check
 ### ESLint
 
 **Команди:**
+
 ```bash
 # Перевірити код
 npm run lint
@@ -43,6 +47,7 @@ npm run lint:fix
 ```
 
 **Основні правила:**
+
 - Заборонено `console.log` без попередження (використовуйте логування)
 - Заборонено невикористані змінні
 - Обов'язкова валідація require для Node.js модулів
@@ -54,6 +59,7 @@ npm run lint:fix
 ### Pre-commit hook
 
 Перед кожним комітом автоматично виконується:
+
 1. ✅ Перевірка форматування коду (Prettier)
 2. ✅ Перевірка лінтером (ESLint)
 3. ✅ Запуск тестів
@@ -62,6 +68,7 @@ npm run lint:fix
 ### Commit-msg hook
 
 Перевіряє формат commit message згідно з **Conventional Commits**:
+
 - `feat:` - нова функціональність
 - `fix:` - виправлення помилки
 - `docs:` - зміни в документації
@@ -73,6 +80,7 @@ npm run lint:fix
 - `build:` - зміни в системі збірки
 
 **Приклади:**
+
 ```
 feat: add user authentication
 fix: resolve task deletion bug
@@ -82,6 +90,7 @@ docs: update README with setup instructions
 ### Pre-push hook
 
 Перед push в репозиторій виконується:
+
 1. ✅ Перевірка форматування
 2. ✅ Перевірка лінтером
 3. ✅ Запуск тестів
@@ -92,6 +101,7 @@ docs: update README with setup instructions
 На даний момент тести завжди успішні (для початку). Пізніше будуть додані реальні тести.
 
 **Команди:**
+
 ```bash
 npm test              # Всі тести
 npm run test:unit     # Unit тести
@@ -104,6 +114,7 @@ npm run test:e2e      # E2E тести
 На даний момент збірка завжди успішна. Пізніше буде налаштована реальна збірка.
 
 **Команда:**
+
 ```bash
 npm run build
 ```
@@ -114,4 +125,3 @@ npm run build
 2. **Виправляйте помилки лінтера** - використовуйте `npm run lint:fix`
 3. **Дотримуйтесь Conventional Commits** - це допоможе в автоматизації
 4. **Запускайте тести локально** перед push
-
