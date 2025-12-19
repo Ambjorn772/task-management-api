@@ -2,7 +2,7 @@ const UsersController = require('../controllers/UsersController');
 
 const usersController = new UsersController();
 
-async function usersRoutes(fastify, options) {
+async function usersRoutes(fastify, _options) {
   // GET /users - отримати всіх користувачів
   fastify.get('/', usersController.getAllUsers.bind(usersController));
 

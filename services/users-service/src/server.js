@@ -17,6 +17,7 @@ async function startServer() {
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to start server:', error);
+    // eslint-disable-next-line no-process-exit
     process.exit(1);
   }
 }
@@ -26,6 +27,7 @@ process.on('SIGINT', async () => {
   // eslint-disable-next-line no-console
   console.log('\nShutting down gracefully...');
   await app.close();
+  // eslint-disable-next-line no-process-exit
   process.exit(0);
 });
 
@@ -33,6 +35,7 @@ process.on('SIGTERM', async () => {
   // eslint-disable-next-line no-console
   console.log('\nShutting down gracefully...');
   await app.close();
+  // eslint-disable-next-line no-process-exit
   process.exit(0);
 });
 

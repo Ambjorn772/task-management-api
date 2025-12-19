@@ -1,6 +1,5 @@
 const TasksRepository = require('../../src/repositories/TasksRepository');
 const Task = require('../../src/models/Task');
-const Database = require('better-sqlite3');
 
 // Мокируємо dbConfig для використання тестової БД
 jest.mock('../../src/database/dbConfig', () => {
