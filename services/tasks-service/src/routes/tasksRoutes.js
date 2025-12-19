@@ -2,7 +2,7 @@ const TasksController = require('../controllers/TasksController');
 
 const tasksController = new TasksController();
 
-async function tasksRoutes(fastify, options) {
+async function tasksRoutes(fastify, _options) {
   // GET /tasks - отримати всі завдання
   fastify.get('/', tasksController.getAllTasks.bind(tasksController));
 
