@@ -1,0 +1,19 @@
+{
+  "name": "task-management-api",
+  "version": "1.0.0",
+  "description": "Мікросервісна архітектура для управління завданнями з двома сервісами: Tasks Service та Users Service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "microservices",
+    "api",
+    "task-management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
