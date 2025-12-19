@@ -38,4 +38,3 @@ class TasksClient {
 }
 
 module.exports = TasksClient;
-

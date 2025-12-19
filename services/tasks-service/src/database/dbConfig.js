@@ -2,7 +2,8 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, '../../../data/tasks.db');
+const dbPath =
+  process.env.DB_PATH || path.join(__dirname, '../../../data/tasks.db');
 const dbDir = path.dirname(dbPath);
 
 // Створюємо директорію для БД якщо не існує

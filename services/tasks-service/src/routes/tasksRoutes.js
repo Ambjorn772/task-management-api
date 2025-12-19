@@ -10,7 +10,10 @@ async function tasksRoutes(fastify, options) {
   fastify.get('/:id', tasksController.getTaskById.bind(tasksController));
 
   // GET /tasks/user/:userId - отримати завдання користувача
-  fastify.get('/user/:userId', tasksController.getTasksByUserId.bind(tasksController));
+  fastify.get(
+    '/user/:userId',
+    tasksController.getTasksByUserId.bind(tasksController)
+  );
 
   // POST /tasks - створити нове завдання
   fastify.post('/', tasksController.createTask.bind(tasksController));

@@ -2,7 +2,11 @@ class ValidationService {
   static validateUserData(data) {
     const errors = [];
 
-    if (!data.username || typeof data.username !== 'string' || data.username.trim().length === 0) {
+    if (
+      !data.username ||
+      typeof data.username !== 'string' ||
+      data.username.trim().length === 0
+    ) {
       errors.push('Username is required and must be a non-empty string');
     }
 
@@ -10,7 +14,11 @@ class ValidationService {
       errors.push('Username must be less than 50 characters');
     }
 
-    if (!data.email || typeof data.email !== 'string' || data.email.trim().length === 0) {
+    if (
+      !data.email ||
+      typeof data.email !== 'string' ||
+      data.email.trim().length === 0
+    ) {
       errors.push('Email is required and must be a non-empty string');
     }
 
@@ -64,4 +72,3 @@ class ValidationService {
 }
 
 module.exports = ValidationService;
-

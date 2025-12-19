@@ -33,9 +33,30 @@ function initializeDatabase() {
       `);
 
       const users = [
-        ['john_doe', 'john.doe@example.com', 'John', 'Doe', '2025-12-01T10:00:00.000Z', '2025-12-01T10:00:00.000Z'],
-        ['jane_smith', 'jane.smith@example.com', 'Jane', 'Smith', '2025-12-05T14:30:00.000Z', '2025-12-05T14:30:00.000Z'],
-        ['bob_wilson', 'bob.wilson@example.com', 'Bob', 'Wilson', '2025-12-10T09:15:00.000Z', '2025-12-10T09:15:00.000Z'],
+        [
+          'john_doe',
+          'john.doe@example.com',
+          'John',
+          'Doe',
+          '2025-12-01T10:00:00.000Z',
+          '2025-12-01T10:00:00.000Z',
+        ],
+        [
+          'jane_smith',
+          'jane.smith@example.com',
+          'Jane',
+          'Smith',
+          '2025-12-05T14:30:00.000Z',
+          '2025-12-05T14:30:00.000Z',
+        ],
+        [
+          'bob_wilson',
+          'bob.wilson@example.com',
+          'Bob',
+          'Wilson',
+          '2025-12-10T09:15:00.000Z',
+          '2025-12-10T09:15:00.000Z',
+        ],
       ];
 
       const insertMany = db.transaction((users) => {

@@ -87,7 +87,8 @@ class UsersController {
           total: tasks.length,
           byStatus: {
             pending: tasks.filter((t) => t.status === 'pending').length,
-            'in-progress': tasks.filter((t) => t.status === 'in-progress').length,
+            'in-progress': tasks.filter((t) => t.status === 'in-progress')
+              .length,
             completed: tasks.filter((t) => t.status === 'completed').length,
             cancelled: tasks.filter((t) => t.status === 'cancelled').length,
           },
@@ -130,7 +131,9 @@ class UsersController {
       }
 
       // Перевірка унікальності username
-      const existingUserByUsername = this.repository.findByUsername(request.body.username);
+      const existingUserByUsername = this.repository.findByUsername(
+        request.body.username
+      );
       if (existingUserByUsername) {
         return reply.code(409).send({
           success: false,
@@ -139,7 +142,9 @@ class UsersController {
       }
 
       // Перевірка унікальності email
-      const existingUserByEmail = this.repository.findByEmail(request.body.email);
+      const existingUserByEmail = this.repository.findByEmail(
+        request.body.email
+      );
       if (existingUserByEmail) {
         return reply.code(409).send({
           success: false,

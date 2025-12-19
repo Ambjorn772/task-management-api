@@ -119,7 +119,10 @@ class TasksController {
         });
       }
 
-      const dataValidation = ValidationService.validateTaskData(request.body, true);
+      const dataValidation = ValidationService.validateTaskData(
+        request.body,
+        true
+      );
 
       if (!dataValidation.isValid) {
         return reply.code(400).send({

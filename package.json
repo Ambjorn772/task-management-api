@@ -3,11 +3,29 @@
   "version": "1.0.0",
   "description": "Мікросервісна архітектура для управління завданнями з двома сервісами: Tasks Service та Users Service",
   "main": "index.js",
+  "dependencies": {
+    "fastify": "^4.24.3",
+    "better-sqlite3": "^9.2.2"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "@stryker-mutator/core": "^8.0.0",
+    "@stryker-mutator/jest-runner": "^8.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "prettier": "^3.2.0"
+  },
   "scripts": {
-    "test": "echo \"Tests passed\" && exit 0",
-    "test:unit": "echo \"Unit tests passed\" && exit 0",
-    "test:integration": "echo \"Integration tests passed\" && exit 0",
-    "test:e2e": "echo \"E2E tests passed\" && exit 0",
+    "test": "jest",
+    "test:unit": "jest --testPathPatterns=unit",
+    "test:integration": "jest --testPathPatterns=integration",
+    "test:e2e": "jest --testPathPatterns=e2e",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:mutation": "stryker run",
     "lint": "npx eslint . --ext .js",
     "lint:fix": "npx eslint . --ext .js --fix",
     "format": "npx prettier --write \"**/*.{js,json,md}\"",
@@ -38,9 +56,5 @@
     "*.md": [
       "prettier --write"
     ]
-  },
-  "dependencies": {
-    "better-sqlite3": "^12.5.0",
-    "fastify": "^5.6.2"
   }
 }

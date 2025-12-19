@@ -4,7 +4,9 @@ const db = require('../database/dbConfig');
 class UsersRepository {
   findAll() {
     try {
-      const rows = db.prepare('SELECT * FROM Users ORDER BY createdAt DESC').all();
+      const rows = db
+        .prepare('SELECT * FROM Users ORDER BY createdAt DESC')
+        .all();
       return rows.map((row) => this.mapRowToUser(row));
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -29,7 +31,9 @@ class UsersRepository {
 
   findByUsername(username) {
     try {
-      const row = db.prepare('SELECT * FROM Users WHERE username = ?').get(username);
+      const row = db
+        .prepare('SELECT * FROM Users WHERE username = ?')
+        .get(username);
       if (!row) {
         return null;
       }
@@ -106,7 +110,9 @@ class UsersRepository {
       values.push(new Date().toISOString());
       values.push(id);
 
-      const result = db.prepare(`UPDATE Users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+      const result = db
+        .prepare(`UPDATE Users SET ${updates.join(', ')} WHERE id = ?`)
+        .run(...values);
 
       if (result.changes === 0) {
         return null;

@@ -19,9 +19,11 @@ node services/users-service/src/server.js
 ## API Endpoints
 
 ### GET /users
+
 Отримати всіх користувачів
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -31,9 +33,11 @@ node services/users-service/src/server.js
 ```
 
 ### GET /users/:id
+
 Отримати користувача за ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -47,9 +51,11 @@ node services/users-service/src/server.js
 ```
 
 ### GET /users/:id/tasks
+
 Отримати завдання користувача (інтеграція з Tasks Service)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -72,9 +78,11 @@ node services/users-service/src/server.js
 ```
 
 ### POST /users
+
 Створити нового користувача
 
 **Request Body:**
+
 ```json
 {
   "username": "new_user",
@@ -85,12 +93,15 @@ node services/users-service/src/server.js
 ```
 
 ### PUT /users/:id
+
 Оновити користувача
 
 ### DELETE /users/:id
+
 Видалити користувача
 
 ### GET /health
+
 Health check endpoint
 
 ## Статичні дані
@@ -100,4 +111,3 @@ Health check endpoint
 ## Інтеграція з Tasks Service
 
 Users Service інтегрується з Tasks Service через HTTP клієнт для отримання завдань користувача.
-

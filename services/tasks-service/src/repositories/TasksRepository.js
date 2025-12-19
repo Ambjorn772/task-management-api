@@ -4,7 +4,9 @@ const db = require('../database/dbConfig');
 class TasksRepository {
   findAll() {
     try {
-      const rows = db.prepare('SELECT * FROM Tasks ORDER BY createdAt DESC').all();
+      const rows = db
+        .prepare('SELECT * FROM Tasks ORDER BY createdAt DESC')
+        .all();
       return rows.map((row) => this.mapRowToTask(row));
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -29,7 +31,9 @@ class TasksRepository {
 
   findByUserId(userId) {
     try {
-      const rows = db.prepare('SELECT * FROM Tasks WHERE userId = ? ORDER BY createdAt DESC').all(userId);
+      const rows = db
+        .prepare('SELECT * FROM Tasks WHERE userId = ? ORDER BY createdAt DESC')
+        .all(userId);
       return rows.map((row) => this.mapRowToTask(row));
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -103,7 +107,9 @@ class TasksRepository {
       values.push(new Date().toISOString());
       values.push(id);
 
-      const result = db.prepare(`UPDATE Tasks SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+      const result = db
+        .prepare(`UPDATE Tasks SET ${updates.join(', ')} WHERE id = ?`)
+        .run(...values);
 
       if (result.changes === 0) {
         return null;
