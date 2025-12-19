@@ -1,4 +1,5 @@
 // Node.js проект
+// eslint-disable-next-line no-console
 console.log('Hello, Node.js!');
 
 // Пример простого сервера (раскомментируйте при необходимости)

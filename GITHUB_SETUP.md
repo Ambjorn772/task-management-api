@@ -43,4 +43,3 @@ git push -u origin main
 
 После выполнения команд проверьте, что репозиторий доступен по адресу:
 `https://github.com/YOUR_USERNAME/task-management-api`
-
